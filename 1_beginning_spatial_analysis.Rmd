@@ -27,7 +27,8 @@ library(ggthemes)
 
 ### First download and then specifically grab the locus (or site lat longs)
 
-```{r data-read}
+```{r data-read, warning=F}
+
 # #Lagos download script
 LAGOSNE::lagosne_get(dest_folder = LAGOSNE:::lagos_path())
 
@@ -38,13 +39,13 @@ lagos <- lagosne_load()
 #Grab the lake centroid info
 lake_centers <- lagos$locus
 
-
 ```
 
 
 
 ### Convert to spatial data
 ```{r}
+
 #Look at the column names
 #names(lake_centers)
 
@@ -73,6 +74,7 @@ subset_baser <- spatial_lakes[1:100,]
 ### Subset to only Minnesota
 
 ```{r}
+
 states <- us_states()
 
 #Plot all the states to check if they loaded
@@ -90,6 +92,7 @@ minnesota_lakes %>%
   arrange(-lake_area_ha) %>%
     slice(1:1000) %>%
   mapview(.,zcol = 'lake_area_ha')
+
 ```
 
 
@@ -112,9 +115,10 @@ mapview(Iowa_Illinois)
 
 
 ## 2) Subset LAGOS data to these sites, how many sites are in Illinois and Iowa
-combined? How does this compare to Minnesota?
-
+combined? How does this compare to Minnesota?  
+**A: Iowa and Illinois have 16,466 sites, fewer than Minnesota, which has 29,038.**
 ```{r}
+
 Iowa_Illinois_lakes <- spatial_lakes[Iowa_Illinois,]
 nrow(Iowa_Illinois_lakes)
 nrow(minnesota_lakes)
@@ -127,11 +131,14 @@ nrow(minnesota_lakes)
 - Here I want to see a histogram plot with lake size on x-axis and frequency on 
 y axis (check out geom_histogram)
 
-```{r}
-# Make Iowa's lakes size data 
+**A: As can be seen in the histogram below, both Iowa and Minnesota show a larger distribution of numbers with smaller lakes. However, since the number of lakes in Minnesota is much higher than in Iowa, it can be seen that the distribution of lakes is more diverse and wider.**
+
+```{r, warning=F}
+
+# Make Iowa's lake size data not Iowa_Illinois, using lake area
 Iowa <- states %>% 
-       filter(name=='Iowa') %>% 
-       st_transform(2163)
+        filter(name=='Iowa') %>% 
+        st_transform(2163)
 
 Iowa_lakes <- spatial_lakes[Iowa,]
 
@@ -140,19 +147,21 @@ Iowa_lakes_size <- data.frame(Iowa_lakes$lake_area_ha) %>%
                    mutate(State='Iowa')
 
   
-# Make Minnesota's lakes size data
+# Make Minnesota's lakes size data in similar way
 minnesota_lakes_size <- data.frame(minnesota_lakes$lake_area_ha) %>%
                         rename(Lake_Size=1) %>% 
                         mutate(State='Minnesota')
 
 
-# Bind two data frames
+# Bind two data frames to make a plot
 Compare_lake_size <- rbind(Iowa_lakes_size, minnesota_lakes_size)
 
+
+# Make a histogram plot
 ggplot(Compare_lake_size, aes(x=Lake_Size, fill=State)) +
        xlim(1,200) +
        xlab('Lake Size(ha)') +
-       geom_histogram(bins = 300, alpha=0.6, position = "identity") +
+       geom_histogram(bins = 100, alpha=0.5, position = "identity") +
        theme_few() + 
        scale_color_few() + 
        theme(legend.position=c(0.8,0.8))
@@ -160,8 +169,7 @@ ggplot(Compare_lake_size, aes(x=Lake_Size, fill=State)) +
 ```
 
 
-## 4) Make an interactive plot of lakes in Iowa and Illinois and color them
-by lake area in hectares
+## 4) Make an interactive plot of lakes in Iowa and Illinois and color them by lake area in hectares
 
 ```{r}
 Iowa_Illinois_lakes %>%
@@ -173,8 +181,8 @@ Iowa_Illinois_lakes %>%
 ```
 
 
-## 5) What other data sources might we use to understand how reservoirs and 
-natural lakes vary in size in these three states? 
+## 5) What other data sources might we use to understand how reservoirs and natural lakes vary in size in these three states?  
+**A: For comparing lake size in another way, you can use perimeter length of lakes instead of lake area. The map below shows the variation of lake size using perimeter of lakes in three states. **
 ```{r}
 Compare_lake_length <- rbind(minnesota_lakes, Iowa_Illinois_lakes)
 
