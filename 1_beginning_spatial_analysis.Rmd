@@ -1,7 +1,7 @@
 ---
 title: "LAGOS Spatial Analysis"
-author: "Matthew Ross"
-date: "9/11/2019"
+author: "AJ Lee"
+date: "2/21/2022"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -15,6 +15,7 @@ library(sf) #Spatial package that can read and create shapefiles
 library(mapview) #Interactive maps
 library(LAGOSNE) #Lots and lots of clean lake data
 library(USAboundaries) #USA states and counties
+library(ggthemes)
 ```
 
 
@@ -36,7 +37,6 @@ lagos <- lagosne_load()
 
 #Grab the lake centroid info
 lake_centers <- lagos$locus
-
 
 
 ```
@@ -65,7 +65,7 @@ subset_spatial <- spatial_lakes %>%
 subset_baser <- spatial_lakes[1:100,]
 
 #Dynamic mapviewer
-mapview(subset_spatial)
+#mapview(subset_spatial)
 
 ```
 
@@ -77,6 +77,7 @@ states <- us_states()
 
 #Plot all the states to check if they loaded
 #mapview(states)
+
 minnesota <- states %>%
   filter(name == 'Minnesota') %>%
   st_transform(2163)
@@ -100,7 +101,11 @@ minnesota_lakes %>%
 
 ```{r}
 
+Iowa_Illinois <- states %>% 
+              filter(name %in% c('Iowa', 'Illinois')) %>% 
+              st_transform(2163)
 
+mapview(Iowa_Illinois)
 
 ```
 
@@ -110,6 +115,9 @@ minnesota_lakes %>%
 combined? How does this compare to Minnesota?
 
 ```{r}
+Iowa_Illinois_lakes <- spatial_lakes[Iowa_Illinois,]
+nrow(Iowa_Illinois_lakes)
+nrow(minnesota_lakes)
 
 ```
 
@@ -120,7 +128,34 @@ combined? How does this compare to Minnesota?
 y axis (check out geom_histogram)
 
 ```{r}
+# Make Iowa's lakes size data 
+Iowa <- states %>% 
+       filter(name=='Iowa') %>% 
+       st_transform(2163)
 
+Iowa_lakes <- spatial_lakes[Iowa,]
+
+Iowa_lakes_size <- data.frame(Iowa_lakes$lake_area_ha) %>% 
+                   rename(Lake_Size=1) %>% 
+                   mutate(State='Iowa')
+
+  
+# Make Minnesota's lakes size data
+minnesota_lakes_size <- data.frame(minnesota_lakes$lake_area_ha) %>%
+                        rename(Lake_Size=1) %>% 
+                        mutate(State='Minnesota')
+
+
+# Bind two data frames
+Compare_lake_size <- rbind(Iowa_lakes_size, minnesota_lakes_size)
+
+ggplot(Compare_lake_size, aes(x=Lake_Size, fill=State)) +
+       xlim(1,200) +
+       xlab('Lake Size(ha)') +
+       geom_histogram(bins = 300, alpha=0.6, position = "identity") +
+       theme_few() + 
+       scale_color_few() + 
+       theme(legend.position=c(0.8,0.8))
 
 ```
 
@@ -129,11 +164,26 @@ y axis (check out geom_histogram)
 by lake area in hectares
 
 ```{r}
+Iowa_Illinois_lakes %>%
+  arrange(-lake_area_ha) %>%
+  slice(1:1000) %>%
+  mapview(.,zcol = 'lake_area_ha')
+
 
 ```
 
 
 ## 5) What other data sources might we use to understand how reservoirs and 
 natural lakes vary in size in these three states? 
+```{r}
+Compare_lake_length <- rbind(minnesota_lakes, Iowa_Illinois_lakes)
+
+Compare_lake_length %>% 
+  arrange(-lake_perim_meters) %>% 
+  slice(1:1000) %>% 
+  mapview(., zcol='lake_perim_meters')
+
+```
+
 
 
