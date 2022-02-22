@@ -164,7 +164,7 @@ ggplot(Compare_lake_size, aes(x=Lake_Size, fill=State)) +
        geom_histogram(bins = 100, alpha=0.5, position = "identity") +
        theme_few() + 
        scale_color_few() + 
-       theme(legend.position=c(0.8,0.8))
+       theme(legend.position=c(0.8,0.7))
 
 ```
 
