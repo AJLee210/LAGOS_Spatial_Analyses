@@ -158,8 +158,6 @@ chla_secchi_most <- chla_secchi %>%
 spatial_most <- inner_join(spatial_lakes,chla_secchi_most,
                           by='lagoslakeid')
 
-#mapview(spatial_most)
-
 ```
 
 
@@ -171,7 +169,7 @@ states <- us_states() %>%
 
 US_spatial_most <- st_join(spatial_most, states)
 
-#mapview(US_spatial_most)
+# mapview(US_spatial_most)
 
 ```
 
@@ -186,9 +184,33 @@ US_lake_Observation <- US_spatial_most %>%
                        group_by(name) %>% 
                        summarize(Observation=sum(Total_by_lake)) %>% 
                        arrange(-Observation)
-head(US_lake_Observation)
+
+# head(US_lake_Observation)
+mapview(US_lake_Observation, zcol='Observation')
 
 ```
+
+
+### Bonus: Map of total observation number by state not lake sites
+
+```{r}
+spatial_most_state <- inner_join(spatial_most, lagos$state, by='state_zoneid') %>% 
+                      select('state_name', 'Total_by_lake') %>% 
+                      group_by(state_name) %>% 
+                      summarize(Observation=sum(Total_by_lake))
+
+spatial_most_state$geometry <- NULL
+
+
+US_lake_Observation_option <- inner_join(states, spatial_most_state, by='state_name')
+
+mapview(US_lake_Observation_option, zcol='Observation')
+
+
+```
+
+
+
 
 ## 3) Is there a spatial pattern in Secchi disk depth for lakes with at least 200 observations?  
 
